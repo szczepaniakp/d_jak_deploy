@@ -9,8 +9,9 @@ def test_hello_world():
     assert response.status_code == 200
     assert response.json() == {"message" : "hello world"}
 
-def test_hello_name():
-    name = "Patrycja"
+@pytest.mark.parametrize("name", ["Ala", "zazółć ", "Patrycja"])
+def test_hello_name(name):
     response = client.get(f'/hello/{name}')
     assert response.status_code == 200
     assert response.json() == {"message" : f"hello {name}"}
+

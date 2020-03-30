@@ -7,10 +7,9 @@ app = FastAPI()
 class HelloNameResp(BaseModel):
     message: str
 
-
 @app.get('/')
 def hello_world():
-    return {"message" : "hello world"}
+    return {"message": "Hello World during the coronavirus pandemic!"}
 
 @app.get('/hello/{name}', response_model=HelloNameResp)
 def hello_name(name: str):

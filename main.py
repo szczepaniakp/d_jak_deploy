@@ -7,6 +7,9 @@ app = FastAPI()
 class HelloNameResp(BaseModel):
     message: str
 
+class MethodResp(BaseModel):
+    method: str
+
 @app.get('/')
 def hello_world():
     return {"message": "Hello World during the coronavirus pandemic!"}
@@ -14,12 +17,11 @@ def hello_world():
 @app.get('/hello/{name}', response_model=HelloNameResp)
 def hello_name(name: str):
     return HelloNameResp(message=f"hello {name}")
-    # return {"message" : }
 
-@app.get('/method', response_model=HelloNameResp)
-@app.put('/method', response_model=HelloNameResp)
-@app.delete('/method', response_model=HelloNameResp)
-@app.post('/method', response_model=HelloNameResp)
+@app.get('/method', response_model=MethodResp)
+@app.put('/method', response_model=MethodResp)
+@app.delete('/method', response_model=MethodResp)
+@app.post('/method', response_model=MethodResp)
 def hello_method(request: Request):
     method = request.method
-    return HelloNameResp(message=f"{method}")
+    return MethodResp(method=f"{method}")

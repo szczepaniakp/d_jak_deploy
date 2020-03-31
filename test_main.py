@@ -23,5 +23,5 @@ def test_hello_name(name):
 def test_hello_method(method):
     response = method[1]
     assert response.status_code == 200
-    assert response.json() == {"message" : f"{method[0]}"}
+    assert response.json() == {"method" : f"{method[0]}"}
 

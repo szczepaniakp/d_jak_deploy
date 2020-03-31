@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 # from typing import Dict
 
@@ -15,3 +15,11 @@ def hello_world():
 def hello_name(name: str):
     return HelloNameResp(message=f"hello {name}")
     # return {"message" : }
+
+@app.get('/method', response_model=HelloNameResp)
+@app.put('/method', response_model=HelloNameResp)
+@app.delete('/method', response_model=HelloNameResp)
+@app.post('/method', response_model=HelloNameResp)
+def hello_method(request: Request):
+    method = request.method
+    return HelloNameResp(message=f"{method}")

@@ -35,10 +35,10 @@ def hello_method(request: Request):
     method = request.method
     return MethodResp(method=f"{method}")
 
-@app.post('/patient', response_model=Patient)
+@app.post('/patient', response_model=PatientData)
 def add_patient(data: PatientData):
     patient_data = data.dict()
     id = len(patients) 
     patients.append(patient_data)
-    
-    return Patient(id=id, patient=patient_data)
+
+    return data #Patient(id=id, patient=patient_data)

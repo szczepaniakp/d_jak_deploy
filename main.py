@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from typing import Dict
 import logging
@@ -46,9 +46,18 @@ def add_patient(data: PatientData):
 
     return Patient(id=id, patient=patient_data)
 
-@app.get("/patient/<int:pk>", response_model=PatientData)
-def get_patient(pk):
-    try:
-        return PatientData(**patients[pk])
-    except:
-        return 404#, {"message" : f"patient with id={pk} not found"}
+@app.get("/patient/{pk}", response_model=PatientData)#, errors=[404])
+def get_patient(pk: int):
+    # global patients
+    # logging.warning(patients[pk])
+
+    if(pk < 0 or pk >= len(patients)):
+        raise HTTPException(status_code=404, detail=f"patient with id={pk} not found")
+
+    return PatientData(**patients[pk])
+    # except:
+        # return 404#, {"message" : f"patient with id={pk} not found"}
+
+# @app.exception_handler(HTTPException, response_model=GenericHTTPError)
+# async def generic_error(request, ex):
+#     return GenericHTTPError(status_code=ex.status_code, detail=ex.detail)

@@ -50,5 +50,5 @@ def test_get_patient(pk):
 @pytest.mark.parametrize("pk", [-1, 1.1])
 def test_get_patient(pk):
     response =  client.get(f"/patient/{pk}")
-    assert response.status_code == 404
+    assert response.status_code in (404, 422)
     # assert response.json() == {"message" : f"patient with id={pk} not found"}

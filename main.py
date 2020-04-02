@@ -51,17 +51,10 @@ def get_patient(pk):
         i = int(pk)
 
     except:
-        # return 400#, {"message": "Hello World during the coronavirus pandemic!"}
-        raise HTTPException(status_code=400)#, detail=f"patient with id={pk} not found")
+        raise HTTPException(status_code=400)
 
     if(i < 0 or i >= len(patients)):
-        # return 404#, {"message": "Hello World during the coronavirus pandemic!"}
-        raise HTTPException(status_code=204)#, detail=f"patient with id={pk} not found")
-    else:
-        return PatientData(**patients[i])
-    # except:
-        # return 404#, {"message" : f"patient with id={pk} not found"}
-
-# @app.exception_handler(HTTPException, response_model=GenericHTTPError)
-# async def generic_error(request, ex):
-#     return GenericHTTPError(status_code=ex.status_code, detail=ex.detail)
+        raise HTTPException(status_code=204)
+    
+    return PatientData(**patients[i])
+    

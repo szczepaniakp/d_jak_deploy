@@ -46,19 +46,20 @@ def add_patient(data: PatientData):
 
     return Patient(id=id, patient=patient_data)
 
-@app.get("/patient/{pk}", response_model=PatientData)#, errors=[404])
+@app.get("/patient/{pk}")#, response_model=PatientData)#, errors=[404])
 def get_patient(pk):
-    # global patients
-    # logging.warning(patients[pk])
     try:
         i = int(pk)
+
     except:
-        raise HTTPException(status_code=404, detail=f"patient with id={pk} not found")
+        # return 404, {"message": "Hello World during the coronavirus pandemic!"}
+        raise HTTPException(status_code=404)#, detail=f"patient with id={pk} not found")
 
     if(i < 0 or i >= len(patients)):
-        raise HTTPException(status_code=404, detail=f"patient with id={pk} not found")
-
-    return PatientData(**patients[int(pk)])
+        # return 404, {"message": "Hello World during the coronavirus pandemic!"}
+        raise HTTPException(status_code=404)#, detail=f"patient with id={pk} not found")
+    else:
+        return PatientData(**patients[i])
     # except:
         # return 404#, {"message" : f"patient with id={pk} not found"}
 

@@ -33,8 +33,22 @@ def test_hello_method(method):
 ])
 def test_add_patient(patient):
     json = {"name" : f"{patient[0]}", "surename" : f"{patient[1]}"}
-    response = client.post('/patient', json=json)
+    response = client.post("/patient", json=json)
 
     assert response.status_code == 200
     assert response.json() == {"id" : (len(patients)-1), "patient" : 
     {"name" : f"{patient[0]}", "surename" : f"{patient[1]}"}}
+
+@pytest.mark.parametrize("pk", [0, 2])#, -1, 1.1])
+def test_get_patient(pk):
+    # json = {"name" : f"{patient[0]}", "surename" : f"{patient[1]}"}
+    # client.post("/patient", json=json)
+    response =  client.get(f"/patient/{pk}")
+    assert response.status_code == 200
+    assert response.json() == {"name" : f"{patients[pk][name]}", "surename" : f"{patient[pk][surname]}"}
+
+@pytest.mark.parametrize("pk", [-1, 1.1])
+def test_get_patient(pk):
+    response =  client.get(f"/patient/{pk}")
+    assert response.status_code == 404
+    # assert response.json() == {"message" : f"patient with id={pk} not found"}

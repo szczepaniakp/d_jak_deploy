@@ -19,7 +19,7 @@ class PatientData(BaseModel):
     surename: str
 
 class Patient(BaseModel):
-    id: int 
+    id: int
     patient: Dict 
 
 @app.get('/')
@@ -40,14 +40,15 @@ def hello_method(request: Request):
 
 @app.post('/patient', response_model=Patient)
 def add_patient(data: PatientData):
-    # global counter
     patient_data = data.dict()
-    id = len(patients)  # counter 
-    # counter = counter + 1
     patients.append(patient_data)
-    logging.warning("PACJENt")
-    logging.warning(patient_data)
-    # return {"id": id, "patient": {"name": f"{patient_data[name]}", 
-    # "surname": f"{patient_data[surname]}"}}
-    # {"id": N, "patient": {"name": "IMIE", "surename": "NAZWISKO"}}
+    id = len(patients) - 1
+
     return Patient(id=id, patient=patient_data)
+
+@app.get("/patient/<int:pk>", response_model=PatientData)
+def get_patient(pk):
+    try:
+        return PatientData(**patients[pk])
+    except:
+        return 404#, {"message" : f"patient with id={pk} not found"}

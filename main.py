@@ -6,7 +6,6 @@ import json
 
 app = FastAPI()
 patients =[]
-counter =0
 
 class HelloNameResp(BaseModel):
     message: str
@@ -46,18 +45,18 @@ def add_patient(data: PatientData):
 
     return Patient(id=id, patient=patient_data)
 
-@app.get("/patient/{pk}")#, response_model=PatientData)#, errors=[404])
+@app.get("/patient/{pk}", response_model=PatientData)#, errors=[404])
 def get_patient(pk):
     try:
         i = int(pk)
 
     except:
-        # return 404, {"message": "Hello World during the coronavirus pandemic!"}
-        raise HTTPException(status_code=404)#, detail=f"patient with id={pk} not found")
+        # return 404#, {"message": "Hello World during the coronavirus pandemic!"}
+        raise HTTPException(status_code=400)#, detail=f"patient with id={pk} not found")
 
     if(i < 0 or i >= len(patients)):
         # return 404, {"message": "Hello World during the coronavirus pandemic!"}
-        raise HTTPException(status_code=404)#, detail=f"patient with id={pk} not found")
+        raise HTTPException(status_code=400)#, detail=f"patient with id={pk} not found")
     else:
         return PatientData(**patients[i])
     # except:

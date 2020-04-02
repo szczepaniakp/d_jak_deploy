@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from main import app, patients, counter
+from main import app, patients
 import json
 client = TestClient(app) #klient, ktory gada z app
 
@@ -50,5 +50,5 @@ def test_get_patient(pk):
 @pytest.mark.parametrize("pk", [-1, 1.1])
 def test_get_patient(pk):
     response =  client.get(f"/patient/{pk}")
-    assert response.status_code in (404, 422)
+    assert response.status_code in (404, 400)
     # assert response.json() == {"message" : f"patient with id={pk} not found"}

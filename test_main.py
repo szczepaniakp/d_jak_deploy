@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from main import app
+from main import app, patients
 import json
 client = TestClient(app) #klient, ktory gada z app
 
@@ -25,3 +25,16 @@ def test_hello_method(method):
     assert response.status_code == 200
     assert response.json() == {"method" : f"{method[0]}"}
 
+@pytest.mark.parametrize("patient", [
+    ("Anna", "Minsky"),
+    ("Greg", "Chawisz"),
+    ("Patty", "Shwash"),
+    ("Rina", "Gilbert"),
+])
+def test_add_patient(patient):
+    json = {"name" : f"{patient[0]}", "surname" : f"{patient[1]}"}
+    response = client.post('/patient', json=json)
+
+    assert response.status_code == 200
+    assert response.json() == {"id" : (len(patients)-1), "patient" : 
+    {"name" : f"{patient[0]}", "surname" : f"{patient[1]}"}}

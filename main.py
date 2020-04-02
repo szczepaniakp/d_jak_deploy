@@ -56,7 +56,7 @@ def get_patient(pk):
 
     if(i < 0 or i >= len(patients)):
         # return 404#, {"message": "Hello World during the coronavirus pandemic!"}
-        raise HTTPException(status_code=400)#, detail=f"patient with id={pk} not found")
+        raise HTTPException(status_code=204)#, detail=f"patient with id={pk} not found")
     else:
         return PatientData(**patients[i])
     # except:

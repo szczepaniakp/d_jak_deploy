@@ -14,8 +14,8 @@ class MethodResp(BaseModel):
     method: str
 
 class PatientData(BaseModel):
-    name: str
-    surename: str
+    name: str=""
+    surename: str=""
 
 class Patient(BaseModel):
     id: int
@@ -51,11 +51,11 @@ def get_patient(pk):
         i = int(pk)
 
     except:
-        # return 404#, {"message": "Hello World during the coronavirus pandemic!"}
+        # return 400#, {"message": "Hello World during the coronavirus pandemic!"}
         raise HTTPException(status_code=400)#, detail=f"patient with id={pk} not found")
 
     if(i < 0 or i >= len(patients)):
-        # return 404, {"message": "Hello World during the coronavirus pandemic!"}
+        # return 404#, {"message": "Hello World during the coronavirus pandemic!"}
         raise HTTPException(status_code=400)#, detail=f"patient with id={pk} not found")
     else:
         return PatientData(**patients[i])

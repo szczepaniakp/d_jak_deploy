@@ -1,9 +1,12 @@
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from typing import Dict
+import logging
+import json
 
 app = FastAPI()
 patients =[]
+counter =0
 
 class HelloNameResp(BaseModel):
     message: str
@@ -13,7 +16,7 @@ class MethodResp(BaseModel):
 
 class PatientData(BaseModel):
     name: str
-    surname: str
+    surename: str
 
 class Patient(BaseModel):
     id: int 
@@ -37,8 +40,14 @@ def hello_method(request: Request):
 
 @app.post('/patient', response_model=Patient)
 def add_patient(data: PatientData):
+    # global counter
     patient_data = data.dict()
-    id = len(patients) 
+    id = len(patients)  # counter 
+    # counter = counter + 1
     patients.append(patient_data)
-
+    logging.warning("PACJENt")
+    logging.warning(patient_data)
+    # return {"id": id, "patient": {"name": f"{patient_data[name]}", 
+    # "surname": f"{patient_data[surname]}"}}
+    # {"id": N, "patient": {"name": "IMIE", "surename": "NAZWISKO"}}
     return Patient(id=id, patient=patient_data)

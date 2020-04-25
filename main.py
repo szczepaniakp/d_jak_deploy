@@ -73,7 +73,7 @@ async def login(*, login: str = Form(...), password: str = Form(...)):
     session_token = sha256(bytes(f"{login}{password}{app.secret_key}", 'utf-8')).hexdigest()
     #db.set(session_token, "session will expire in 5 minutes", ex=300)
     sessions.add(session_token)
-    response = RedirectResponse(url=f"/hello/{login}", status_code=status.HTTP_302_FOUND) 
+    response = RedirectResponse(url=f"/welcome", status_code=status.HTTP_302_FOUND) 
     response.set_cookie(key="session_token", value=session_token, expires=300)
     response.headers['Authorization'] = f"Basic {passes}" 
 

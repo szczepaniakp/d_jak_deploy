@@ -69,7 +69,7 @@ async def login(response: Response, *, username: str = Form(...), password: str 
     response.set_cookie(key="session_token", value=session_token, expires=300)
     response.headers['Authorization'] = f"Basic {passes}" 
 
-    return hello_name(username)
+    return hello_name(username)  # RedirectResponse(url=f"/hello/{username}", status_code=HTTP_302_FOUND) 
 
 
 @app.get('/method', response_model=MethodResp)

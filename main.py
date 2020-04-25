@@ -99,7 +99,7 @@ def read_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     session_token = sha256(bytes(f"{username}{password}{app.secret_key}", 'utf-8')).hexdigest()
     #db.set(session_token, "session will expire in 5 minutes", ex=300)
     sessions.add(session_token)
-    response = RedirectResponse(url="/hello", status_code=status.HTTP_302_FOUND) 
+    response = RedirectResponse(url="/hello", status_code=status.HTTP_302_FOUND, headers={"Location": "/hello"}) 
     response.set_cookie(key="session_token", value=session_token, expires=300)
     response.headers['Authorization'] = f"Basic {passes}" 
 

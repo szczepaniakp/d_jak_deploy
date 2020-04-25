@@ -7,7 +7,7 @@ import json
 app = FastAPI()
 patients =[]
 
-class HelloNameResp(BaseModel):
+class HelloResp(BaseModel):
     message: str
 
 class MethodResp(BaseModel):
@@ -25,9 +25,13 @@ class Patient(BaseModel):
 def hello_world():
     return {"message": "Hello World during the coronavirus pandemic!"}
 
-@app.get('/hello/{name}', response_model=HelloNameResp)
+@app.get('/hello/{name}', response_model=HelloResp)
 def hello_name(name: str):
-    return HelloNameResp(message=f"hello {name}")
+    return HelloResp(message=f"hello {name}")
+
+@app.get('/welcome', response_model=HelloResp)
+def welcome():
+    return HelloResp(message="Hi there!")
 
 @app.get('/method', response_model=MethodResp)
 @app.put('/method', response_model=MethodResp)

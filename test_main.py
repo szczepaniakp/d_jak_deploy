@@ -15,6 +15,11 @@ def test_hello_name(name):
     assert response.status_code == 200
     assert response.json() == {"message" : f"hello {name}"}
 
+def test_welcome():
+    response = client.get(f"/welcome")
+    assert response.status_code == 200
+    assert response.json() == {"message" : "Hi there!"}
+
 @pytest.mark.parametrize("method", [
     ("GET", client.get('/method')),
     ("PUT", client.put('/method')),

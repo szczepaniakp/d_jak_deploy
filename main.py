@@ -61,7 +61,7 @@ async def login(response: Response, *, username: str = Form(...), password: str 
     passes = b64encode(bytes(username + ':' + password, "utf-8"))
 
     if passes not in hashed_passes:  #db.smembers(USERS):
-        raise HTTPException(status_code=403, detail="Unauthorized") 
+        raise HTTPException(status_code=401, detail="Unauthorized") 
 
     session_token = sha256(bytes(f"{username}{password}{app.secret_key}", 'utf-8')).hexdigest()
     #db.set(session_token, "session will expire in 5 minutes", ex=300)
@@ -69,7 +69,7 @@ async def login(response: Response, *, username: str = Form(...), password: str 
     response.set_cookie(key="session_token", value=session_token, expires=300)
     response.headers['Authorization'] = f"Basic {passes}" 
 
-    return welcome()
+    return hello_name(username)
 
 
 @app.get('/method', response_model=MethodResp)

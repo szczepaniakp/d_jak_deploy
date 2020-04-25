@@ -51,7 +51,7 @@ def hello_world():
 def hello_name(name: str):
     return HelloResp(message=f"hello {name}")
 
-@app.get('/hello', response_model=HelloResp)
+@app.get('/welcome', response_model=HelloResp)
 def welcome():
     return HelloResp(message="Hi there!")
 
@@ -87,7 +87,7 @@ async def login(request: Request, *, username: str = Form(...), password: str = 
     return response
     
 @app.post('/login')
-def read_current_user(credentials: HTTPBasicCredentials = Depends(security)):
+def login(credentials: HTTPBasicCredentials = Depends(security)):
     username = credentials.username
     password = credentials.password
 
@@ -99,7 +99,7 @@ def read_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     session_token = sha256(bytes(f"{username}{password}{app.secret_key}", 'utf-8')).hexdigest()
     #db.set(session_token, "session will expire in 5 minutes", ex=300)
     sessions.add(session_token)
-    response = RedirectResponse(url="/hello", status_code=status.HTTP_302_FOUND, headers={"Location": "/hello"}) 
+    response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)#, headers={"Location": "/hello"}) 
     response.set_cookie(key="session_token", value=session_token, expires=300)
     response.headers['Authorization'] = f"Basic {passes}" 
 

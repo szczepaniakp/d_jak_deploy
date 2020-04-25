@@ -58,12 +58,15 @@ def load_login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request}) 
 
 @app.post('/login')
-async def login(*, login: str = Form(...), password: str = Form(...)):
+async def login(request: Request, *, login: str = Form(...), password: str = Form(...)):
     # print(username)
     # await request.form()
     # print(request.form())
     # username = request.form()["login"]
     # password = request.form()["pass"]
+    print(request.query_params)
+    login = request.query_params["login"] 
+    password = request.query_params["pass"] 
 
     passes = b64encode(bytes(login + ':' + password, "utf-8"))
 
@@ -73,7 +76,7 @@ async def login(*, login: str = Form(...), password: str = Form(...)):
     session_token = sha256(bytes(f"{login}{password}{app.secret_key}", 'utf-8')).hexdigest()
     #db.set(session_token, "session will expire in 5 minutes", ex=300)
     sessions.add(session_token)
-    response = RedirectResponse(url=f"/welcome", status_code=status.HTTP_302_FOUND) 
+    response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND) 
     response.set_cookie(key="session_token", value=session_token, expires=300)
     response.headers['Authorization'] = f"Basic {passes}" 
 

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Response, Form, status
-from starlette.responses import RedirectResponse
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from typing import Dict
 # import redis
@@ -21,7 +21,7 @@ app = FastAPI()
 hashed_passes = { b64encode("trudnY:PaC13Nt".encode('utf-8')) }
 sessions = set()
 
-app.secret_key = environ.get("DAFT_SECRET_KEY") #"very consta and random secret, best 64 characters"
+app.secret_key = "very consta and random secret, best 64 characters" #environ.get("DAFT_SECRET_KEY")
 
 patients =[]
 templates = Jinja2Templates(directory="templates")
@@ -58,19 +58,26 @@ def load_login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request}) 
 
 @app.post('/login')
-async def login(response: Response, *, username: str = Form(...), password: str = Form(...)):
-    passes = b64encode(bytes(username + ':' + password, "utf-8"))
+async def login(*, login: str = Form(...), password: str = Form(...)):
+    # print(username)
+    # await request.form()
+    # print(request.form())
+    # username = request.form()["login"]
+    # password = request.form()["pass"]
+
+    passes = b64encode(bytes(login + ':' + password, "utf-8"))
 
     if passes not in hashed_passes:  #db.smembers(USERS):
         raise HTTPException(status_code=401, detail="Unauthorized") 
 
-    session_token = sha256(bytes(f"{username}{password}{app.secret_key}", 'utf-8')).hexdigest()
+    session_token = sha256(bytes(f"{login}{password}{app.secret_key}", 'utf-8')).hexdigest()
     #db.set(session_token, "session will expire in 5 minutes", ex=300)
     sessions.add(session_token)
+    response = RedirectResponse(url=f"/hello/{login}", status_code=status.HTTP_302_FOUND) 
     response.set_cookie(key="session_token", value=session_token, expires=300)
     response.headers['Authorization'] = f"Basic {passes}" 
 
-    return RedirectResponse(url=f"/hello/{username}", status_code=status.HTTP_302_FOUND) 
+    return response
 
 
 @app.get('/method', response_model=MethodResp)

@@ -1,11 +1,30 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Response, Form
 from pydantic import BaseModel
 from typing import Dict
-import logging
-import json
+# import redis
+from os import environ
+from hashlib import sha256
+from base64 import b64encode
+
+
+# import logging
+# import json
+# from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+USERS = "users"
 
 app = FastAPI()
+# db = redis.Redis(host='localhost', charset="utf-8", decode_responses=True)
+# db.sadd(b64encode(b"trudnY:PaC13Nt"))
+hashed_passes = { b64encode("trudnY:PaC13Nt".encode('utf-8')) }
+sessions = set()
+
+app.secret_key = environ.get("DAFT_SECRET_KEY") #"very consta and random secret, best 64 characters"
+
 patients =[]
+templates = Jinja2Templates(directory="templates")
+
 
 class HelloResp(BaseModel):
     message: str
@@ -32,6 +51,26 @@ def hello_name(name: str):
 @app.get('/welcome', response_model=HelloResp)
 def welcome():
     return HelloResp(message="Hi there!")
+
+@app.get('/login')
+def load_login_form(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request}) 
+
+@app.post('/login')
+async def login(response: Response, *, username: str = Form(...), password: str = Form(...)):
+    passes = b64encode(bytes(username + ':' + password, "utf-8"))
+
+    if passes not in hashed_passes:  #db.smembers(USERS):
+        raise HTTPException(status_code=403, detail="Unauthorized") 
+
+    session_token = sha256(bytes(f"{username}{password}{app.secret_key}", 'utf-8')).hexdigest()
+    #db.set(session_token, "session will expire in 5 minutes", ex=300)
+    sessions.add(session_token)
+    response.set_cookie(key="session_token", value=session_token, expires=300)
+    response.headers['Authorization'] = f"Basic {passes}" 
+
+    return welcome()
+
 
 @app.get('/method', response_model=MethodResp)
 @app.put('/method', response_model=MethodResp)

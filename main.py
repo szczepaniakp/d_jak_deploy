@@ -67,10 +67,9 @@ def welcome(request: Request, response: Response):
     logging.warning("\n\nLOGII\n")
     logging.warning(request.cookies)
     logging.warning(request.headers)
-
     user = sessions[request.cookies["session_token"]]
 
-    response = templates.TemplateResponse("index.html", {"request": request, "user": "trudnY"})
+    response = templates.TemplateResponse("index.html", {"request": request, "user": user})
     # response.status_code = status.HTTP_302_FOUND
 
     return response
@@ -98,7 +97,8 @@ def login(user_data: (str, str) = Depends(check_creds)):
     # sessions.add(session_token)
     passes = user_data[0]
     session_token = user_data[1]
-    
+    # sessions[session_token] = username
+
     response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
     response.headers["Location"] = "/welcome"
     response.set_cookie(key="session_token", value=session_token)
@@ -116,10 +116,11 @@ def if_logged_in(request: Request, session_token: str = Cookie(None)):
     #         raise HTTPException(status_code=401, detail="Unauthorized")
     # except:
     #     raise HTTPException(status_code=401, detail="Unauthorized")
-    print("session_token" not in request.cookies.keys())
-    print(request.cookies["session_token"])
+    print(session_token not in sessions.keys())
     if "session_token" not in request.cookies.keys():
         raise HTTPException(status_code=440, detail="Session is dead") 
+    if request.cookies["session_token"] not in sessions.keys():
+        raise HTTPException(status_code=401, detail="Unauthorized") 
 
 
 @app.post('/logout')
@@ -155,11 +156,15 @@ def add_patient(data: PatientData, request: Request):
     patient_data = data.dict()
     id = f"id_{len(patients)+1}"
     patients[id] = patient_data
-    print()
 
     # return Patient(id=id, patient=patient_data)
-    response = RedirectResponse(url=f"/patient/{id}", status_code=status.HTTP_302_FOUND)
+    return RedirectResponse(url=f"/patient/{id}", status_code=status.HTTP_302_FOUND)
 
+@app.get("/patient")
+def get_patients(request: Request):
+    if_logged_in(request)
+
+    return patients
 
 @app.get("/patient/{pk}", response_model=PatientData)
 def get_patient(pk, request: Request):
@@ -167,7 +172,7 @@ def get_patient(pk, request: Request):
     if pk not in patients.keys():
         raise HTTPException(status_code=400)
     
-    return PatientData(*patients[pk])
+    return PatientData(**patients[pk])
 
 @app.delete("/patient/{pk}")
 def delete_patient(pk, request: Request):
@@ -176,13 +181,9 @@ def delete_patient(pk, request: Request):
         raise HTTPException(status_code=400)
 
     del patients[pk]
-    return RedirectResponse(url=f"/patient", status_code=status.HTTP_302_FOUND)
+    # return RedirectResponse(url=f"/welcome", status_code=status.HTTP_302_FOUND, headers={"Location":"/welcome"})
 
-@app.get("/patient")
-def get_patients(request: Request):
-    if_logged_in(request)
 
-    return patients
     
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

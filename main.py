@@ -24,7 +24,7 @@ sessions = set()
 
 app.secret_key = "very consta and random secret, best 64 characters" #environ.get("DAFT_SECRET_KEY")
 
-patients =[]
+patients ={}
 templates = Jinja2Templates(directory="templates")
 
 
@@ -36,10 +36,10 @@ class MethodResp(BaseModel):
 
 class PatientData(BaseModel):
     name: str=""
-    surename: str=""
+    surname: str=""
 
 class Patient(BaseModel):
-    id: int
+    id: str
     patient: Dict 
 
 def if_logged(headers):
@@ -132,27 +132,49 @@ def hello_method(request: Request):
     method = request.method
     return MethodResp(method=f"{method}")
 
-@app.post('/patient', response_model=Patient)
+@app.post('/patient')#, response_model=Patient)
 def add_patient(data: PatientData, request: Request):
     if_logged_in(request)
 
     patient_data = data.dict()
-    patients.append(patient_data)
-    id = len(patients) - 1
+    id = f"id_{len(patients)+1}"
+    patients[id] = patient_data
 
-    return Patient(id=id, patient=patient_data)
+    # return Patient(id=id, patient=patient_data)
+    response = RedirectResponse(url=f"/patient/{id}", status_code=status.HTTP_302_FOUND)
+
 
 @app.get("/patient/{pk}", response_model=PatientData)#, errors=[404])
 def get_patient(pk, request: Request):
     if_logged_in(request)
-    try:
-        i = int(pk)
-
-    except:
+    if pk not in patients.keys():
         raise HTTPException(status_code=400)
 
-    if(i < 0 or i >= len(patients)):
-        raise HTTPException(status_code=204)
+    # if(i < 0 or i >= len(patients)):
+    #     raise HTTPException(status_code=204)
     
-    return PatientData(**patients[i])
+    return PatientData(**patients[pk])
+
+@app.delete("/patient/{pk}", response_model=PatientData)#, errors=[404])
+def get_patient(pk, request: Request):
+    if_logged_in(request)
+    if pk not in patients.keys():
+        raise HTTPException(status_code=400)
+
+    del patients[pk]
+    return 200
+
+@app.get("/patient", response_model=PatientData)#, errors=[404])
+def get_patients(pk, request: Request):
+    if_logged_in(request)
+    # try:
+    #     i = int(pk)
+
+    # except:
+    #     raise HTTPException(status_code=400)
+
+    # if(i < 0 or i >= len(patients)):
+    #     raise HTTPException(status_code=204)
+    
+    return patients
     

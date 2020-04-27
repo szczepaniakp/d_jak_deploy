@@ -53,7 +53,7 @@ def welcome(request: Request, response: Response):
    
     user = request.cookies["username"]
 
-    response = templates.TemplateResponse("index.html", {"request": request, "user": user})
+    response = templates.TemplateResponse("index.html", {"request": request, "user": "trudnY"})
     response.status_code = status.HTTP_302_FOUND
 
     return response

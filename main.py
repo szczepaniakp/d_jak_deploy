@@ -139,6 +139,7 @@ def add_patient(data: PatientData, request: Request):
     patient_data = data.dict()
     id = f"id_{len(patients)+1}"
     patients[id] = patient_data
+    print()
 
     # return Patient(id=id, patient=patient_data)
     response = RedirectResponse(url=f"/patient/{id}", status_code=status.HTTP_302_FOUND)
@@ -149,32 +150,21 @@ def get_patient(pk, request: Request):
     if_logged_in(request)
     if pk not in patients.keys():
         raise HTTPException(status_code=400)
-
-    # if(i < 0 or i >= len(patients)):
-    #     raise HTTPException(status_code=204)
     
-    return PatientData(**patients[pk])
+    return PatientData(*patients[pk])
 
-@app.delete("/patient/{pk}", response_model=PatientData)#, errors=[404])
-def get_patient(pk, request: Request):
+@app.delete("/patient/{pk}")#, errors=[404])
+def delete_patient(pk, request: Request):
     if_logged_in(request)
     if pk not in patients.keys():
         raise HTTPException(status_code=400)
 
     del patients[pk]
-    return 200
+    return RedirectResponse(url=f"/patient", status_code=status.HTTP_302_FOUND)
 
-@app.get("/patient", response_model=PatientData)#, errors=[404])
-def get_patients(pk, request: Request):
+@app.get("/patient")
+def get_patients(request: Request):
     if_logged_in(request)
-    # try:
-    #     i = int(pk)
-
-    # except:
-    #     raise HTTPException(status_code=400)
-
-    # if(i < 0 or i >= len(patients)):
-    #     raise HTTPException(status_code=204)
-    
+   
     return patients
     

@@ -20,7 +20,7 @@ app = FastAPI()
 
 
 hashed_passes = { b64encode("trudnY:PaC13Nt".encode('utf-8')).decode('utf-8') }
-sessions = set()
+sessions = {}
 
 app.secret_key = "very consta and random secret, best 64 characters" 
 
@@ -57,9 +57,9 @@ def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
         raise HTTPException(status_code=401, detail="Unauthorized") 
 
     session_token = sha256(bytes(f"{username}{password}{app.secret_key}", encoding='utf8')).hexdigest()
-    sessions.add(session_token)
+    sessions[session_token] = username
 
-    return session_token
+    return passes, session_token
 
 @app.get('/welcome')
 def welcome(request: Request, response: Response):
@@ -68,7 +68,7 @@ def welcome(request: Request, response: Response):
     logging.warning(request.cookies)
     logging.warning(request.headers)
 
-    user = request.cookies["username"]
+    user = sessions[request.cookies["session_token"]]
 
     response = templates.TemplateResponse("index.html", {"request": request, "user": "trudnY"})
     # response.status_code = status.HTTP_302_FOUND
@@ -85,7 +85,7 @@ def hello_name(name: str):
     return HelloResp(message=f"hello {name}")
 
 @app.post('/login')
-def login(session_token: str = Depends(check_creds)):
+def login(user_data: (str, str) = Depends(check_creds)):
     # username = credentials.username
     # password = credentials.password
 
@@ -96,10 +96,13 @@ def login(session_token: str = Depends(check_creds)):
 
     # session_token = sha256(bytes(f"{username}{password}{app.secret_key}", encoding='utf8')).hexdigest()
     # sessions.add(session_token)
+    passes = user_data[0]
+    session_token = user_data[1]
+    
     response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
     response.headers["Location"] = "/welcome"
     response.set_cookie(key="session_token", value=session_token)
-    response.set_cookie(key="username", value=username)
+    # response.set_cookie(key="username", value=username)
 
     response.headers['Authorization'] = f"Basic {passes}" 
 

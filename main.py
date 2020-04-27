@@ -10,7 +10,7 @@ from base64 import b64encode
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
+import logging
 from fastapi.templating import Jinja2Templates
 
 USERS = "users"
@@ -50,10 +50,11 @@ class Patient(BaseModel):
 @app.get('/welcome')
 def welcome(request: Request, response: Response):
     if_logged_in(request)
-    print(request.cookies)
-    print(request.headers)
+    logging.warning("\n\nLOGII\n")
+    logging.warning(request.cookies)
+    logging.warning(request.headers)
 
-    # user = request.cookies["username"]
+    user = request.cookies["username"]
 
     response = templates.TemplateResponse("index.html", {"request": request, "user": "trudnY"})
     # response.status_code = status.HTTP_302_FOUND
@@ -84,7 +85,7 @@ def login(credentials: HTTPBasicCredentials = Depends(security)):
     response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
     response.headers["Location"] = "/welcome"
     response.set_cookie(key="session_token", value=session_token)
-    # response.set_cookie(key="username", value=username)
+    response.set_cookie(key="username", value=username)
 
     response.headers['Authorization'] = f"Basic {passes}" 
 

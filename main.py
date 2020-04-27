@@ -48,16 +48,20 @@ class Patient(BaseModel):
 #         return response        
 
 @app.get('/welcome')
-def welcome(request: Request):
+def welcome(request: Request, response: Response):
     if_logged_in(request)
-
+   
     user = request.cookies["username"]
-    return templates.TemplateResponse("index.html", {"request": request, "user": user}) 
 
+    response = templates.TemplateResponse("index.html", {"request": request, "user": user})
+    response.status_code = status.HTTP_302_FOUND
 
-@app.get('/')
-def hello_world(request: Request):
-    return {"message": "Hello World during the coronavirus pandemic!"}
+    return response
+
+@app.get('/', response_model=HelloResp)
+def hello_world(request: Request, response: Response):
+    return {"message":"Hello World during the coronavirus pandemic!"}
+    #HelloResp(message = "Hello World during the coronavirus pandemic!")
 
 @app.get('/hello/{name}', response_model=HelloResp)
 def hello_name(name: str):
@@ -99,16 +103,18 @@ def if_logged_in(request: Request):
 def logout(request: Request, current_user = Depends(security)):
     if_logged_in(request)
 
-    print(request.headers)
     response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND, headers={"Location": "/"})
-    
+    response.headers["Authorization"] = ""
+
     try:
         session = request.cookies["session_token"]
         sessions.remove(session)
     except:
         print("Already removed")
+
     response.delete_cookie("session_token")
-    # response.status_code = status.HTTP_302_FOUND
+    response.delete_cookie("username")
+
     return response
 
 # @app.get('/method', response_model=MethodResp)

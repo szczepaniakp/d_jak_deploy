@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Response, Form, status, Query, Depends, APIRouter
+from fastapi import FastAPI, Request, HTTPException, Response, Form, status, Query, Depends, APIRouter, Cookie
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -50,11 +50,13 @@ class Patient(BaseModel):
 @app.get('/welcome')
 def welcome(request: Request, response: Response):
     if_logged_in(request)
-   
-    user = request.cookies["username"]
+    print(request.cookies)
+    print(request.headers)
+
+    # user = request.cookies["username"]
 
     response = templates.TemplateResponse("index.html", {"request": request, "user": "trudnY"})
-    response.status_code = status.HTTP_302_FOUND
+    # response.status_code = status.HTTP_302_FOUND
 
     return response
 
@@ -77,24 +79,27 @@ def login(credentials: HTTPBasicCredentials = Depends(security)):
     if passes not in hashed_passes:  
         raise HTTPException(status_code=401, detail="Unauthorized") 
 
-    session_token = sha256(bytes(f"{username}{password}{app.secret_key}", 'utf-8')).hexdigest()
+    session_token = sha256(bytes(f"{username}{password}{app.secret_key}", encoding='utf8')).hexdigest()
     sessions.add(session_token)
     response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
-    response.set_cookie(key="session_token", value=session_token, expires=300)
-    response.set_cookie(key="username", value=username)
+    response.headers["Location"] = "/welcome"
+    response.set_cookie(key="session_token", value=session_token)
+    # response.set_cookie(key="username", value=username)
 
     response.headers['Authorization'] = f"Basic {passes}" 
 
     return response
 
 
-def if_logged_in(request: Request):
+def if_logged_in(request: Request, session_token: str = Cookie(None)):
     try:
         auth = request.headers["Authorization"].split(" ")[1]
         if auth not in hashed_passes:  
             raise HTTPException(status_code=401, detail="Unauthorized")
     except:
         raise HTTPException(status_code=401, detail="Unauthorized")
+    print("session_token" not in request.cookies.keys())
+    print(request.cookies["session_token"])
     if "session_token" not in request.cookies.keys():
         raise HTTPException(status_code=440, detail="Session is dead") 
 
@@ -148,16 +153,16 @@ def get_patient(pk, request: Request):
 
 @app.delete("/patient/{pk}")
 def delete_patient(pk, request: Request):
-    if_logged_in(request)
+    # if_logged_in(request)
     if pk not in patients.keys():
         raise HTTPException(status_code=400)
 
     del patients[pk]
-    return RedirectResponse(url=f"/patient")
+    return RedirectResponse(url=f"/patient", status_code=status.HTTP_302_FOUND)
 
 @app.get("/patient")
 def get_patients(request: Request):
-    if_logged_in(request)
+    # if_logged_in(request)
 
     return patients
     

@@ -50,7 +50,7 @@ def hello_name(name: str):
     return HelloResp(message=f"hello {name}")
 
 @app.get('/welcome')
-def welcome(request: Request):
+def welcome(request: Request, credentials: HTTPBasicCredentials = Depends(security)):
     # return HelloResp(message="Hi there!")
     user = request.cookies["username"]
 
@@ -91,12 +91,15 @@ def if_logged_in(request: Request):
 
 
 @app.post('/logout')
-def logout(request: Request, response: Response, username: str = Depends(login)):
+def logout(request: Request, credentials: HTTPBasicCredentials = Depends(security)):
     print(request.headers)
-    response = RedirectResponse(url=welcome(), status_code=status.HTTP_302_FOUND)
+    response = RedirectResponse(url='/welcome', status_code=status.HTTP_302_FOUND)
     response.delete_cookie("Authorization")
     session = request.cookies["session_token"]
-    sessions.remove(session)
+    try:
+        sessions.remove(session)
+    except:
+        print("Already removed")
     response.delete_cookie("session_token")
     #  if request.headers["authorization"] not in sessions:
     #     raise HTTPException(status_code=401, detail="Session is dead") 

@@ -86,17 +86,16 @@ def if_logged_in(request: Request):
         
     if "session_token" not in request.cookies.keys():
         raise HTTPException(status_code=401, detail="Session is dead") 
-        return False
-    return True
 
 
 @app.post('/logout')
 def logout(request: Request, current_user = Depends(security)):
+    if_logged_in(request)
+
     print(request.headers)
     response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND, headers={"Location": "/"})
     # response.dele("authorization")
     response.set_cookie(key="session_token", value="")
-
     
     try:
         session = request.cookies["session_token"]
@@ -113,7 +112,7 @@ def logout(request: Request, current_user = Depends(security)):
 @app.get('/welcome')
 def welcome(request: Request, credentials: HTTPBasicCredentials = Depends(login)):
     # return HelloResp(message="Hi there!")
-    if not if_logged_in(request):
+    # if not if_logged_in(request):
 
     user = request.cookies["username"]
 
@@ -133,7 +132,9 @@ def hello_method(request: Request):
     return MethodResp(method=f"{method}")
 
 @app.post('/patient', response_model=Patient)
-def add_patient(data: PatientData):
+def add_patient(data: PatientData, request: Request):
+    if_logged_in(request)
+
     patient_data = data.dict()
     patients.append(patient_data)
     id = len(patients) - 1
@@ -141,7 +142,8 @@ def add_patient(data: PatientData):
     return Patient(id=id, patient=patient_data)
 
 @app.get("/patient/{pk}", response_model=PatientData)#, errors=[404])
-def get_patient(pk):
+def get_patient(pk, request: Request):
+    if_logged_in(request)
     try:
         i = int(pk)
 

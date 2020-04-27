@@ -49,17 +49,6 @@ def hello_world():
 def hello_name(name: str):
     return HelloResp(message=f"hello {name}")
 
-@app.get('/welcome')
-def welcome(request: Request, credentials: HTTPBasicCredentials = Depends(security)):
-    # return HelloResp(message="Hi there!")
-    user = request.cookies["username"]
-
-    return templates.TemplateResponse("index.html", {"request": request, "user": user}) 
-
-# @app.get('/login')
-# def load_login_form(request: Request):
-#     return templates.TemplateResponse("login.html", {"request": request}) 
-    
 @app.post('/login')
 def login(credentials: HTTPBasicCredentials = Depends(security)):
     username = credentials.username
@@ -93,10 +82,11 @@ def if_logged_in(request: Request):
 @app.post('/logout')
 def logout(request: Request, credentials: HTTPBasicCredentials = Depends(security)):
     print(request.headers)
-    response = RedirectResponse(url='/welcome', status_code=status.HTTP_302_FOUND)
-    response.delete_cookie("Authorization")
-    session = request.cookies["session_token"]
+    response = RedirectResponse(url='/welcome', status_code=status.HTTP_302_FOUND, headers={"Location": "/welcome"})
+    response.delete_cookie("authorization")
+    
     try:
+        session = request.cookies["session_token"]
         sessions.remove(session)
     except:
         print("Already removed")
@@ -106,6 +96,18 @@ def logout(request: Request, credentials: HTTPBasicCredentials = Depends(securit
 
     return response
 
+
+@app.get('/welcome')
+def welcome(request: Request, credentials: HTTPBasicCredentials = Depends(login)):
+    # return HelloResp(message="Hi there!")
+    user = request.cookies["username"]
+
+    return templates.TemplateResponse("index.html", {"request": request, "user": user}) 
+
+# @app.get('/login')
+# def load_login_form(request: Request):
+#     return templates.TemplateResponse("login.html", {"request": request}) 
+    
 
 @app.get('/method', response_model=MethodResp)
 @app.put('/method', response_model=MethodResp)

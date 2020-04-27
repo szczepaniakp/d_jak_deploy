@@ -132,7 +132,7 @@ def add_patient(data: PatientData, request: Request):
     response = RedirectResponse(url=f"/patient/{id}", status_code=status.HTTP_302_FOUND)
 
 
-@app.get("/patient/{pk}", response_model=PatientData)#, errors=[404])
+@app.get("/patient/{pk}", response_model=PatientData)
 def get_patient(pk, request: Request):
     if_logged_in(request)
     if pk not in patients.keys():
@@ -140,20 +140,20 @@ def get_patient(pk, request: Request):
     
     return PatientData(*patients[pk])
 
-@app.delete("/patient/{pk}")#, errors=[404])
+@app.delete("/patient/{pk}")
 def delete_patient(pk, request: Request):
     if_logged_in(request)
     if pk not in patients.keys():
         raise HTTPException(status_code=400)
 
     del patients[pk]
-    return RedirectResponse(url=f"/patient", status_code=status.HTTP_204_NO_CONTENT)
+    return RedirectResponse(url=f"/patient")
 
 @app.get("/patient")
 def get_patients(request: Request):
     if_logged_in(request)
 
-    return patients, 200
+    return patients
     
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

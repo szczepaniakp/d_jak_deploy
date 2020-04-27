@@ -47,6 +47,20 @@ class Patient(BaseModel):
 #         response = Response(headers={'WWW-Authenticate': 'Basic'}, status_code=401)
 #         return response        
 
+def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
+    username = credentials.username
+    password = credentials.password
+
+    passes = b64encode(bytes(username + ':' + password, "utf-8")).decode('utf-8')
+
+    if passes not in hashed_passes:  
+        raise HTTPException(status_code=401, detail="Unauthorized") 
+
+    session_token = sha256(bytes(f"{username}{password}{app.secret_key}", encoding='utf8')).hexdigest()
+    sessions.add(session_token)
+
+    return session_token
+
 @app.get('/welcome')
 def welcome(request: Request, response: Response):
     if_logged_in(request)
@@ -71,17 +85,17 @@ def hello_name(name: str):
     return HelloResp(message=f"hello {name}")
 
 @app.post('/login')
-def login(credentials: HTTPBasicCredentials = Depends(security)):
-    username = credentials.username
-    password = credentials.password
+def login(session_token: str = Depends(check_creds)):
+    # username = credentials.username
+    # password = credentials.password
 
-    passes = b64encode(bytes(username + ':' + password, "utf-8")).decode('utf-8')
+    # passes = b64encode(bytes(username + ':' + password, "utf-8")).decode('utf-8')
 
-    if passes not in hashed_passes:  
-        raise HTTPException(status_code=401, detail="Unauthorized") 
+    # if passes not in hashed_passes:  
+    #     raise HTTPException(status_code=401, detail="Unauthorized") 
 
-    session_token = sha256(bytes(f"{username}{password}{app.secret_key}", encoding='utf8')).hexdigest()
-    sessions.add(session_token)
+    # session_token = sha256(bytes(f"{username}{password}{app.secret_key}", encoding='utf8')).hexdigest()
+    # sessions.add(session_token)
     response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
     response.headers["Location"] = "/welcome"
     response.set_cookie(key="session_token", value=session_token)
@@ -93,12 +107,12 @@ def login(credentials: HTTPBasicCredentials = Depends(security)):
 
 
 def if_logged_in(request: Request, session_token: str = Cookie(None)):
-    try:
-        auth = request.headers["Authorization"].split(" ")[1]
-        if auth not in hashed_passes:  
-            raise HTTPException(status_code=401, detail="Unauthorized")
-    except:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    # try:
+    #     auth = request.headers["Authorization"].split(" ")[1]
+    #     if auth not in hashed_passes:  
+    #         raise HTTPException(status_code=401, detail="Unauthorized")
+    # except:
+    #     raise HTTPException(status_code=401, detail="Unauthorized")
     print("session_token" not in request.cookies.keys())
     print(request.cookies["session_token"])
     if "session_token" not in request.cookies.keys():
@@ -154,7 +168,7 @@ def get_patient(pk, request: Request):
 
 @app.delete("/patient/{pk}")
 def delete_patient(pk, request: Request):
-    # if_logged_in(request)
+    if_logged_in(request)
     if pk not in patients.keys():
         raise HTTPException(status_code=400)
 
@@ -163,7 +177,7 @@ def delete_patient(pk, request: Request):
 
 @app.get("/patient")
 def get_patients(request: Request):
-    # if_logged_in(request)
+    if_logged_in(request)
 
     return patients
     
@@ -174,3 +188,5 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
     )
+
+    

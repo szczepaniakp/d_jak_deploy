@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 USERS = "users"
 security = HTTPBasic()
+# basic_auth = BasicAuth(auto_error=False)
 
 app = FastAPI()
 # db = redis.Redis(host='localhost', charset="utf-8", decode_responses=True)
@@ -40,6 +41,11 @@ class PatientData(BaseModel):
 class Patient(BaseModel):
     id: int
     patient: Dict 
+
+def if_logged(headers):
+    if "" not in headers:
+        response = Response(headers={'WWW-Authenticate': 'Basic'}, status_code=401)
+        return response        
 
 @app.get('/')
 def hello_world():
@@ -74,16 +80,21 @@ def login(credentials: HTTPBasicCredentials = Depends(security)):
 
 def if_logged_in(request: Request):
     # session_token = sha256(bytes(f"{username}{password}{app.secret_key}", 'utf-8')).hexdigest()
-    print(request.headers)
-    if request.headers["authorization"] not in sessions:
+    # print(request.headers)
+    # auth = request.headers["authorization"]
+    # if auth
+        
+    if "session_token" not in request.cookies.keys():
         raise HTTPException(status_code=401, detail="Session is dead") 
 
 
 @app.post('/logout')
-def logout(request: Request, credentials: HTTPBasicCredentials = Depends(security)):
+def logout(request: Request, current_user = Depends(security)):
     print(request.headers)
-    response = RedirectResponse(url='/welcome', status_code=status.HTTP_302_FOUND, headers={"Location": "/welcome"})
-    response.delete_cookie("authorization")
+    response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND)
+    # response.dele("authorization")
+    response.set_cookie(key="session_token", value="")
+
     
     try:
         session = request.cookies["session_token"]
@@ -100,6 +111,7 @@ def logout(request: Request, credentials: HTTPBasicCredentials = Depends(securit
 @app.get('/welcome')
 def welcome(request: Request, credentials: HTTPBasicCredentials = Depends(login)):
     # return HelloResp(message="Hi there!")
+    if_logged_in(request)
     user = request.cookies["username"]
 
     return templates.TemplateResponse("index.html", {"request": request, "user": user}) 

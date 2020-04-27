@@ -42,10 +42,6 @@ class Patient(BaseModel):
     id: str
     patient: Dict 
 
-# def if_logged(headers):
-#     if "" not in headers:
-#         response = Response(headers={'WWW-Authenticate': 'Basic'}, status_code=401)
-#         return response        
 
 def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
     username = credentials.username
@@ -64,20 +60,15 @@ def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
 @app.get('/welcome')
 def welcome(request: Request, response: Response):
     if_logged_in(request)
-    logging.warning("\n\nLOGII\n")
-    logging.warning(request.cookies)
-    logging.warning(request.headers)
-    user = sessions[request.cookies["session_token"]]
 
+    user = sessions[request.cookies["session_token"]]
     response = templates.TemplateResponse("index.html", {"request": request, "user": user})
-    # response.status_code = status.HTTP_302_FOUND
 
     return response
 
 @app.get('/', response_model=HelloResp)
 def hello_world(request: Request, response: Response):
     return {"message":"Hello World during the coronavirus pandemic!"}
-    #HelloResp(message = "Hello World during the coronavirus pandemic!")
 
 @app.get('/hello/{name}', response_model=HelloResp)
 def hello_name(name: str):
@@ -85,19 +76,9 @@ def hello_name(name: str):
 
 @app.post('/login')
 def login(user_data: (str, str) = Depends(check_creds)):
-    # username = credentials.username
-    # password = credentials.password
-
-    # passes = b64encode(bytes(username + ':' + password, "utf-8")).decode('utf-8')
-
-    # if passes not in hashed_passes:  
-    #     raise HTTPException(status_code=401, detail="Unauthorized") 
-
-    # session_token = sha256(bytes(f"{username}{password}{app.secret_key}", encoding='utf8')).hexdigest()
-    # sessions.add(session_token)
+   
     passes = user_data[0]
     session_token = user_data[1]
-    # sessions[session_token] = username
 
     response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
     response.headers["Location"] = "/welcome"
@@ -116,9 +97,8 @@ def if_logged_in(request: Request, session_token: str = Cookie(None)):
     #         raise HTTPException(status_code=401, detail="Unauthorized")
     # except:
     #     raise HTTPException(status_code=401, detail="Unauthorized")
-    print(session_token not in sessions.keys())
     if "session_token" not in request.cookies.keys():
-        raise HTTPException(status_code=440, detail="Session is dead") 
+        raise HTTPException(status_code=401, detail="Session is dead") 
     if request.cookies["session_token"] not in sessions.keys():
         raise HTTPException(status_code=401, detail="Unauthorized") 
 
@@ -157,7 +137,6 @@ def add_patient(data: PatientData, request: Request):
     id = f"id_{len(patients)+1}"
     patients[id] = patient_data
 
-    # return Patient(id=id, patient=patient_data)
     return RedirectResponse(url=f"/patient/{id}", status_code=status.HTTP_302_FOUND)
 
 @app.get("/patient")
@@ -174,7 +153,7 @@ def get_patient(pk, request: Request):
     
     return PatientData(**patients[pk])
 
-@app.delete("/patient/{pk}")
+@app.delete("/patient/{pk}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_patient(pk, request: Request):
     if_logged_in(request)
     if pk not in patients.keys():

@@ -86,12 +86,14 @@ def if_logged_in(request: Request):
         
     if "session_token" not in request.cookies.keys():
         raise HTTPException(status_code=401, detail="Session is dead") 
+        return False
+    return True
 
 
 @app.post('/logout')
 def logout(request: Request, current_user = Depends(security)):
     print(request.headers)
-    response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND)
+    response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND, headers={"Location": "/"})
     # response.dele("authorization")
     response.set_cookie(key="session_token", value="")
 
@@ -111,7 +113,8 @@ def logout(request: Request, current_user = Depends(security)):
 @app.get('/welcome')
 def welcome(request: Request, credentials: HTTPBasicCredentials = Depends(login)):
     # return HelloResp(message="Hi there!")
-    if_logged_in(request)
+    if not if_logged_in(request):
+
     user = request.cookies["username"]
 
     return templates.TemplateResponse("index.html", {"request": request, "user": user}) 

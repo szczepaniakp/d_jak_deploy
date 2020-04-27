@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Response, Form, status, Query, Depends
+from fastapi import FastAPI, Request, HTTPException, Response, Form, status, Query, Depends, APIRouter
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -49,9 +49,12 @@ def hello_world():
 def hello_name(name: str):
     return HelloResp(message=f"hello {name}")
 
-@app.get('/welcome', response_model=HelloResp)
-def welcome():
-    return HelloResp(message="Hi there!")
+@app.get('/welcome')
+def welcome(request: Request):
+    # return HelloResp(message="Hi there!")
+    user = request.cookies["username"]
+
+    return templates.TemplateResponse("index.html", {"request": request, "user": user}) 
 
 # @app.get('/login')
 # def load_login_form(request: Request):
@@ -71,7 +74,10 @@ def login(credentials: HTTPBasicCredentials = Depends(security)):
     #db.set(session_token, "session will expire in 5 minutes", ex=300)
     sessions.add(session_token)
     response = RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
+    # Request.url_for()
     response.set_cookie(key="session_token", value=session_token, expires=300)
+    response.set_cookie(key="username", value=username)
+
     response.headers['Authorization'] = f"Basic {passes}" 
 
     return response
@@ -87,7 +93,7 @@ def if_logged_in(request: Request):
 @app.post('/logout')
 def logout(request: Request, response: Response, username: str = Depends(login)):
     print(request.headers)
-    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    response = RedirectResponse(url=welcome(), status_code=status.HTTP_302_FOUND)
     response.delete_cookie("Authorization")
     session = request.cookies["session_token"]
     sessions.remove(session)

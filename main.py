@@ -95,7 +95,7 @@ def logout(request: Request, current_user = Depends(security)):
     print(request.headers)
     response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND, headers={"Location": "/"})
     # response.dele("authorization")
-    response.set_cookie(key="session_token", value="")
+    # response(key="session_token", value="")
     
     try:
         session = request.cookies["session_token"]
@@ -113,6 +113,7 @@ def logout(request: Request, current_user = Depends(security)):
 def welcome(request: Request, credentials: HTTPBasicCredentials = Depends(login)):
     # return HelloResp(message="Hi there!")
     # if not if_logged_in(request):
+    if_logged_in(request)
 
     user = request.cookies["username"]
 

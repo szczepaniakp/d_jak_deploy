@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response, status, HTTPException, Query
+from fastapi import APIRouter, Request, Response, status, HTTPException
 import sqlite3
 import os.path
 from fastapi.encoders import jsonable_encoder
@@ -130,17 +130,20 @@ def customers(customer_id: int, customer_data: Customer):
 
 
 @router.get("/sales")
-def sales(request: Request, category: List[int] = Query([])):
-    print("PRINT")
-    print(category)
-    
-    with sqlite3.connect(db_path) as connection:
-        connection.row_factory = dict_factory
-        cursor = connection.cursor()
-        result = cursor.execute(
-            f"SELECT c.CustomerId, c.Email, c.Phone, ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c JOIN invoices i ON c.CustomerId = i.CustomerId WHERE c.CustomerId IN {tuple(category)} GROUP BY i.CustomerId ORDER BY SUM(i.Total) DESC, c.CustomerId ASC").fetchall()
-        if len(result) == 0:
-            raise HTTPException(status_code=404, detail={
-                                "error": f"Cannot provide data for customers with ids={ category }."})
+def sales(request: Request, category: str):
+    # print("PRINT")
+    # print(category)
+    if category == "customers":
+        with sqlite3.connect(db_path) as connection:
+            connection.row_factory = dict_factory
+            cursor = connection.cursor()
+            result = cursor.execute(
+                f"SELECT c.CustomerId, c.Email, c.Phone, ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c JOIN invoices i ON c.CustomerId = i.CustomerId GROUP BY i.CustomerId ORDER BY SUM(i.Total) DESC, c.CustomerId ASC").fetchall()
+            if len(result) == 0:
+                raise HTTPException(status_code=404, detail={
+                                    "error": f"Cannot provide data for customers with ids={ category }."})
 
-        return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
+            return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
+    else:
+        raise HTTPException(status_code=404, detail={
+                                    "error": f"Cannot provide stats for category '{ category }'"})

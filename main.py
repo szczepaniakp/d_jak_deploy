@@ -12,12 +12,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 import logging
 from fastapi.templating import Jinja2Templates
+from routers import tracks
 
 USERS = "users"
 security = HTTPBasic()
 
 app = FastAPI()
-
+app.include_router(tracks.router)
 
 hashed_passes = { b64encode("trudnY:PaC13Nt".encode('utf-8')).decode('utf-8') }
 sessions = {}
@@ -161,8 +162,6 @@ def delete_patient(pk, request: Request):
 
     del patients[pk]
     # return RedirectResponse(url=f"/welcome", status_code=status.HTTP_302_FOUND, headers={"Location":"/welcome"})
-
-
     
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

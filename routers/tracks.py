@@ -3,6 +3,16 @@ import sqlite3
 import os.path
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+class Album(BaseModel):
+    title: str
+    artist_id: int
+
+class AlbumResponse(BaseModel):
+    AlbumId: int
+    Title: str
+    ArtistId: int
 
 router = APIRouter()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -30,18 +40,15 @@ def get_tracks(request: Request, per_page: int = 10, page: int = 0):
 @router.get("/tracks/composers/")
 def get_tracks_of_composer(request: Request, composer_name: str = ''):
     data = []
-    print(composer_name)
+
     with sqlite3.connect(db_path) as connection:
-        # connection.row_factory = dict_factory
         cursor = connection.cursor()
         tracks = cursor.execute(
             f"SELECT Name FROM tracks WHERE Composer == '{composer_name}'").fetchall()
-        # t = tracks.fetchone()
-        # while tracks.fetchone() is not None:
-        #     data.append(t[0])
-        #     t = tracks.fetchone()
+
         for t in tracks:
             data.append(t[0])
+
         if any(data):
             data.sort()
             return JSONResponse(content=jsonable_encoder(data), status_code= status.HTTP_200_OK)
@@ -49,5 +56,21 @@ def get_tracks_of_composer(request: Request, composer_name: str = ''):
     raise HTTPException(status_code=404, detail={"error": "Composer does not exist in database."})
 
 
+@router.post("/albums", response_model=AlbumResponse)
+async def add_album(request: Request, response: Response, album: Album):
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = dict_factory
+        cursor = connection.cursor()
+        artist_id = cursor.execute(f"SELECT ArtistId FROM artists WHERE ArtistId == { album.artist_id }").fetchone()
+        
+        if not any(artist_id):
+            raise HTTPException(status_code=404, detail={"error": f"Artist with id={ album.artist_id } does not exists."})
+
+        cursor.execute(f"INSERT INTO albums (Title, ArtistId) VALUES ('{ album.title }', '{ album.artist_id }')")
+        connection.commit()
+        # album_data = connection.cursor().execute(f"SELECT * FROM albums WHERE ArtistId == { album.artist_id }").fetchone()
+        # print()
+    return AlbumResponse(AlbumId=cursor.lastrowid, Title=album.title, ArtistId=album.artist_id)
+    #JSONResponse(content=jsonable_encoder(tracks), status_code= status.HTTP_200_OK)
 
     

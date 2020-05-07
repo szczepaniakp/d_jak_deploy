@@ -145,12 +145,12 @@ def sales(request: Request, category: str = ''):
             connection.row_factory = dict_factory
             cursor = connection.cursor()
             result = cursor.execute(
-                f"SELECT g.Name as 'Name', SUM(BoughtfTracks) AS 'Sum' FROM tracks t \
-                JOIN (SELECT ii.TrackId, SUM(ii.Quantity) AS BoughtfTracks FROM invoice_items ii GROUP BY ii.TrackId) b \
+                f"SELECT g.Name AS 'Name', SUM(BoughtTracks) AS 'Sum' FROM tracks t \
+                JOIN (SELECT ii.TrackId, SUM(ii.Quantity) AS BoughtTracks FROM invoice_items ii GROUP BY ii.TrackId) b \
                 ON b.TrackId = t.TrackId \
                 JOIN genres g ON t.GenreId = g.GenreId \
                 GROUP BY t.GenreId \
-                ORDER BY 'Sum' DESC, 'Name' ASC").fetchall()
+                ORDER BY Sum DESC, Name ASC").fetchall()
             if len(result) != 0:
                 return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
 

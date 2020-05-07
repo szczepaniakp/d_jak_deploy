@@ -122,13 +122,13 @@ def logout(request: Request, current_user = Depends(security)):
 
     return response
 
-# @app.get('/method', response_model=MethodResp)
-# @app.put('/method', response_model=MethodResp)
-# @app.delete('/method', response_model=MethodResp)
-# @app.post('/method', response_model=MethodResp)
-# def hello_method(request: Request):
-#     method = request.method
-#     return MethodResp(method=f"{method}")
+@app.get('/method', response_model=MethodResp)
+@app.put('/method', response_model=MethodResp)
+@app.delete('/method', response_model=MethodResp)
+@app.post('/method', response_model=MethodResp)
+def hello_method(request: Request):
+    method = request.method
+    return MethodResp(method=f"{method}")
 
 @app.post('/patient')
 def add_patient(data: PatientData, request: Request):

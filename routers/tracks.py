@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Request, Response, status, HTTPException
 import sqlite3
 import os.path
 from fastapi.encoders import jsonable_encoder
@@ -17,7 +17,7 @@ def dict_factory(cursor, row):
 
 
 @router.get("/tracks")
-def get_tracks(request: Request, response: Response, per_page: int = 10, page: int = 0):
+def get_tracks(request: Request, per_page: int = 10, page: int = 0):
     tracks = {}
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = dict_factory
@@ -25,8 +25,28 @@ def get_tracks(request: Request, response: Response, per_page: int = 10, page: i
         tracks = cursor.execute(
             f"SELECT TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice FROM tracks WHERE TrackId > {page * per_page} and TrackId <= { page * per_page + per_page }").fetchall()
 
-    json_data = jsonable_encoder(tracks)
-    return JSONResponse(content=json_data, status_code= status.HTTP_200_OK)
+    return JSONResponse(content=jsonable_encoder(tracks), status_code= status.HTTP_200_OK)
+
+@router.get("/tracks/composers/")
+def get_tracks_of_composer(request: Request, composer_name: str = ''):
+    data = []
+    print(composer_name)
+    with sqlite3.connect(db_path) as connection:
+        # connection.row_factory = dict_factory
+        cursor = connection.cursor()
+        tracks = cursor.execute(
+            f"SELECT Name FROM tracks WHERE Composer == '{composer_name}'").fetchall()
+        # t = tracks.fetchone()
+        # while tracks.fetchone() is not None:
+        #     data.append(t[0])
+        #     t = tracks.fetchone()
+        for t in tracks:
+            data.append(t[0])
+        if any(data):
+            return JSONResponse(content=jsonable_encoder(data), status_code= status.HTTP_200_OK)
+
+    raise HTTPException(status_code=404, detail={"error": "Composer does not exist in database."})
+
 
 
     

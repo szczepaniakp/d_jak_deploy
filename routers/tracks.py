@@ -120,7 +120,7 @@ def customers(customer_id: int, customer_data: Customer):
 
         for key, value in customer_data.dict().items():
             if value is not None:
-                cursor.execute(f"UPDATE customers SET { key }='{ value }'' WHERE CustomerId == { customer_id }").fetchone()
+                cursor.execute(f"UPDATE customers SET { key }='{ value }' WHERE CustomerId == { customer_id }").fetchone()
 
         connection.row_factory = dict_factory
         cursor = connection.cursor()

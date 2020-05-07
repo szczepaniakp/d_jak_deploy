@@ -136,12 +136,10 @@ def sales(request: Request, category: List[int] = Query([])):
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = dict_factory
         cursor = connection.cursor()
-        # for c in customers:
-
         result = cursor.execute(
             f"SELECT c.CustomerId, c.Email, c.Phone, SUM(i.Total) AS 'Sum' FROM customers c JOIN invoices i ON c.CustomerId = i.CustomerId WHERE c.CustomerId IN {tuple(category)} GROUP BY i.CustomerId ORDER BY SUM(i.Total) DESC, c.CustomerId ASC").fetchall()
         if result is None:
-            raise HTTPException(status_code=404, detail={"error": f"Cannot provide data for customers with ids={ category }."})
+            raise HTTPException(status_code=404, detail={
+                                "error": f"Cannot provide data for customers with ids={ category }."})
 
         return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
-

@@ -9,6 +9,31 @@ class Album(BaseModel):
     title: str
     artist_id: int
 
+# class Customer(BaseModel):
+    # CustomerId: int,
+    # FirstName: str,
+    # LastName: str,
+    # Company: str,
+    # Address: str,
+    # City: str,
+    # "State": str,
+    # "Country": str,
+    # "PostalCode": str,
+    # "Phone": str,
+    # "Fax": str,
+    # "Email": str,
+    # "SupportRepId": int,
+
+
+class Customer(BaseModel):
+    company: str = None
+    address: str = None
+    city: str = None
+    state: str = None
+    country: str = None
+    postalcode: str = None
+    fax: str = None
+
 class AlbumResponse(BaseModel):
     AlbumId: int
     Title: str
@@ -84,3 +109,21 @@ def albums(album_id: int):
             raise HTTPException(status_code=404, detail={"error": f"Album with id={ album_id } does not exist."})
 
     return AlbumResponse(**album)
+
+@router.put("/customers/{customer_id}")
+def customers(customer_id: int, customer_data: Customer):
+    with sqlite3.connect(db_path) as connection:
+        cursor = connection.cursor()
+
+        if cursor.execute(f"SELECT * FROM customers WHERE CustomerId == { customer_id }").fetchone() is None:
+            raise HTTPException(status_code=404, detail={"error": f"Customer with id={ customer_id } does not exist."})
+
+        for key, value in customer_data.dict().items():
+            if value is not None:
+                cursor.execute(f"UPDATE customers SET { key }='{ value }'' WHERE CustomerId == { customer_id }").fetchone()
+
+        connection.row_factory = dict_factory
+        cursor = connection.cursor()
+        customer = cursor.execute(f"SELECT * FROM customers WHERE CustomerId == { customer_id }").fetchone()
+        
+        return JSONResponse(content=jsonable_encoder(customer), status_code= status.HTTP_200_OK)

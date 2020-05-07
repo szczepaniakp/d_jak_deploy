@@ -131,14 +131,15 @@ def customers(customer_id: int, customer_data: Customer):
 
 @router.get("/sales")
 def sales(request: Request, category: List[int] = Query([])):
-    # results = []
-    # print(category)
+    print("PRINT")
+    print(category)
+    
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = dict_factory
         cursor = connection.cursor()
         result = cursor.execute(
-            f"SELECT c.CustomerId, c.Email, c.Phone, SUM(i.Total) AS 'Sum' FROM customers c JOIN invoices i ON c.CustomerId = i.CustomerId WHERE c.CustomerId IN {tuple(category)} GROUP BY i.CustomerId ORDER BY SUM(i.Total) DESC, c.CustomerId ASC").fetchall()
-        if result is None:
+            f"SELECT c.CustomerId, c.Email, c.Phone, ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c JOIN invoices i ON c.CustomerId = i.CustomerId WHERE c.CustomerId IN {tuple(category)} GROUP BY i.CustomerId ORDER BY SUM(i.Total) DESC, c.CustomerId ASC").fetchall()
+        if len(result) == 0:
             raise HTTPException(status_code=404, detail={
                                 "error": f"Cannot provide data for customers with ids={ category }."})
 

@@ -130,7 +130,7 @@ def customers(customer_id: int, customer_data: Customer):
 
 
 @router.get("/sales")
-def sales(request: Request, category: str):
+def sales(request: Request, category: str = ''):
     # print("PRINT")
     # print(category)
     if category == "customers":

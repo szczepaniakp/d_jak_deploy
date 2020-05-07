@@ -136,7 +136,8 @@ def sales(request: Request, category: str = ''):
             connection.row_factory = dict_factory
             cursor = connection.cursor()
             result = cursor.execute(
-                f"SELECT c.CustomerId, IFNULL(c.Email,'') AS 'Email', IFNULL(c.Phone,'') AS 'Phone', ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c LEFT JOIN invoices i ON c.CustomerId = i.CustomerId GROUP BY i.CustomerId ORDER BY SUM(i.Total) DESC, c.CustomerId DESC").fetchall()
+                #f"SELECT c.CustomerId, IFNULL(c.Email,'') AS 'Email', IFNULL(c.Phone,'') AS 'Phone', ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c LEFT JOIN invoices i ON c.CustomerId = i.CustomerId GROUP BY i.CustomerId ORDER BY  ROUND(SUM(i.Total),2) DESC, c.CustomerId ASC").fetchall()
+                f"SELECT c.CustomerId, c.Email, c.Phone, ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c JOIN invoices i ON c.CustomerId = i.CustomerId GROUP BY i.CustomerId ORDER BY  ROUND(SUM(i.Total),2) DESC, c.CustomerId ASC").fetchall()
             if len(result) != 0:
                 return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
 

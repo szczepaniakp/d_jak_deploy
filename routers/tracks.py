@@ -63,7 +63,7 @@ async def album(request: Request, album: Album):
         cursor = connection.cursor()
         artist_id = cursor.execute(f"SELECT ArtistId FROM artists WHERE ArtistId == { album.artist_id }").fetchone()
 
-        if not any(artist_id):
+        if artist_id is None:
             raise HTTPException(status_code=404, detail={"error": f"Artist with id={ album.artist_id } does not exist."})
 
         cursor.execute(f"INSERT INTO albums (Title, ArtistId) VALUES ('{ album.title }', '{ album.artist_id }')")

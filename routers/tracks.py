@@ -136,10 +136,25 @@ def sales(request: Request, category: str = ''):
             connection.row_factory = dict_factory
             cursor = connection.cursor()
             result = cursor.execute(
-                #f"SELECT c.CustomerId, IFNULL(c.Email,'') AS 'Email', IFNULL(c.Phone,'') AS 'Phone', ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c LEFT JOIN invoices i ON c.CustomerId = i.CustomerId GROUP BY i.CustomerId ORDER BY  ROUND(SUM(i.Total),2) DESC, c.CustomerId ASC").fetchall()
-                f"SELECT c.CustomerId, c.Email, c.Phone, ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c JOIN invoices i ON c.CustomerId = i.CustomerId GROUP BY i.CustomerId ORDER BY  ROUND(SUM(i.Total),2) DESC, c.CustomerId ASC").fetchall()
+                f"SELECT c.CustomerId, c.Email, c.Phone, ROUND(SUM(i.Total), 2) AS 'Sum' FROM customers c \
+                    JOIN invoices i ON c.CustomerId = i.CustomerId GROUP BY i.CustomerId ORDER BY ROUND(SUM(i.Total),2) DESC, c.CustomerId ASC").fetchall()
+            if len(result) != 0:
+                return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
+    elif category == 'genres':
+        with sqlite3.connect(db_path) as connection:
+            connection.row_factory = dict_factory
+            cursor = connection.cursor()
+            result = cursor.execute(
+                f"SELECT g.Name as 'Name', SUM(BoughtfTracks) AS 'Sum' FROM tracks t \
+                JOIN (SELECT ii.TrackId, SUM(ii.Quantity) AS BoughtfTracks FROM invoice_items ii GROUP BY ii.TrackId) b \
+                ON b.TrackId = t.TrackId \
+                JOIN genres g ON t.GenreId = g.GenreId \
+                GROUP BY t.GenreId \
+                ORDER BY 'Sum' DESC, 'Name' ASC").fetchall()
             if len(result) != 0:
                 return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
 
     raise HTTPException(status_code=404, detail={
                         "error": f"Cannot provide stats for category '{ category }'"})
+
+

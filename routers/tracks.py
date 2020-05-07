@@ -43,6 +43,7 @@ def get_tracks_of_composer(request: Request, composer_name: str = ''):
         for t in tracks:
             data.append(t[0])
         if any(data):
+            data.sort()
             return JSONResponse(content=jsonable_encoder(data), status_code= status.HTTP_200_OK)
 
     raise HTTPException(status_code=404, detail={"error": "Composer does not exist in database."})

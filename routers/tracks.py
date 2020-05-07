@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, status
 import sqlite3
 import os.path
 
@@ -15,17 +15,19 @@ def dict_factory(cursor, row):
 
 
 @router.get("/tracks", tags=["tracks"])
-def get_tracks(request: Request, per_page: int = 10, page: int = 0):
-
+def get_tracks(request: Request, response: Response, per_page: int = 10, page: int = 0):
+    tracks = {}
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = dict_factory
 # lambda cursor, x: x[0]
         cursor = connection.cursor()
         tracks = cursor.execute(
-            f"SELECT TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice FROM tracks WHERE TrackId >= {page * per_page} and TrackId <= { page * per_page + per_page }").fetchall()
+            f"SELECT TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice FROM tracks WHERE TrackId >= {page * per_page} and TrackId < { page * per_page + per_page }").fetchall()
         print(len(tracks))
         print(tracks[:2])
-        return tracks
+    response.json = tracks
+    response.status_code = status.HTTP_200_OK
+    return tracks
 
 
     
